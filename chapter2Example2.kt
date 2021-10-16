@@ -80,7 +80,21 @@ fun mixOptimized(c1: Color, c2: Color) =
 
 //7. 스마트 캐스트 ?? 이부분 이해 안됨
 
-//8. if -> when 으로 변환
+//8. if
+fun ififif(){
+	//다른 언어들과 같이 if를 일반적으로 사용 가능
+    var x = 10
+	if(x == 10){
+		println("값이 같습니다.")
+	}else{
+		println("값이 다릅니다.")
+	}
+	
+	//if를 문이 아닌 표현식으로 사용 가능
+    val msg = if(x==10) "값이 같습니다." else "값이 다릅니다."
+	println(msg)
+	
+}
 
 //9. while, for 루프
 //while은 자바와 동일
