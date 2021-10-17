@@ -1,6 +1,6 @@
 //1. 함수
 //함수 선언시 fun 사용
-//파라미터 뒤에 타입 지
+//파라미터 뒤에 타입 지정
 fun main(args: Array<String>){
 	println("Hello, World!")
 }
@@ -14,7 +14,7 @@ fun max(a:Int, b:Int) : Int {
 fun max2(a:Int, b:Int) : Int = if (a > b) a else b
 
 //반환 타입 적지 않아도 컴파일러가 함수 본문 식을 분석해 결과 타입을 함수 반환 타입으로 정해
-fun max3(a:Int, b:Int) : Int = if (a > b) a else b
+fun max3(a:Int, b:Int)  = if (a > b) a else b
 
 //2. 변수
 //변수 선언시 타입 명시 또는 생략 가능
