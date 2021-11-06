@@ -1,0 +1,144 @@
+0. 람다란?
+- 기본적으로 다른 함수에 넘길 수 있는 작은 코드 조각
+
+1. 람다 식과 멤버 참조
+- 람다는 자바 8에 도입되어 자바에서도 람사 사용 가능
+- 이벤트가 발생하면 이 핸들러를 실행하자, 데이터 구조의 모든 원소에 이 연산을 적용하자
+-> 예전에는 자바에서 이런 경우 무명 내부 클래스를 사용하여 해결
+button.setOnClickListener(new OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        /* 클릭시 수행할 동작 */
+    }
+});  
+
+-> 람다를 사용하면 함수를 선언할 필요없고 코드 블록을 직접 함수의 인자로 전달 가능
+button.setOnClickListener { /* 클릭시 수행할 동작 */}
+
+=> 두 구현은 동일한 동작이지만 람다를 이용한 경우가 더 간편
+
+2. 람다와 컬렉션
+- 사람들로 이뤄진 리스트가 있고 이 중에 가장 연장자를 찾으려면 람다없이는 루프를 써서 구해야 한다.
+- 그러나 람다를 사용해서 컬력션을 검색하면 더 간단한다.
+val people = listOf(Person("Alice", 29), Person("Bob", 31))
+println(people.maxBy { it.age }) // 나이 프로퍼티를 비교해서 가장 큰 원소 찾기
+// 결과: Person(name=Bob, age=31)
+
+3. 람다식의 문법
+{ x: Int, y: Int -> x + y } //항상 중괄호 사이에 위치
+      파라미터     ->   본문
+      
+- 이름 붙인 인자를 사용해 람다 넘기기     
+val people = listOf(Person("이몽룡", 29), Person("성춘향", 31))
+val names = people.joinToString(seprator = " ", transform = { p: Person -> p.name })
+println(names)
+// 결과: 이몽룡 성춘향
+
+- 람다 파라미터 타입 제거하기
+people.maxBy { p: Person -> p.age } // 파라미터 타입 명시
+people.maxBy { p -> p.age } // 파라미터 타입 생략 (컴파일러가 추론)
+
+// 변수에 람다식 담는 경우 컴파일러가 타입 추론 불가
+val getAge = { p: Person -> p.age }
+people.maxBy(getAge)
+
+- 디폴트 파라미터 이름 it 사용하기
+people.maxBy { it.age }
+
+- 본문이 여러줄로 이뤄진 람다식
+val sum = { x: Int, y: Int -> 
+    println("Computing the sum of $x and $y...")
+    x + y
+}
+
+- 이미 선언된 함수를 값으로 사용해야 하는 경우 멤버 참조 :: 를 사용한다.
+// 모두 같은 동작을 
+people.maxBy(Person::age) // 멤버 참조
+people.maxBy { p -> p.age }
+people.maxBy { it.age }
+
+4. 컬렉션 함수형 
+- 필수적인 함수 filter와 map
+- filter
+val list = listOf(1, 2, 3, 4)
+println(list.filter { it % 2 == 0 }) // 짝수만 filtering
+// 결과: [2, 4]
+
+val personList = listOf(Person("Bob", 31), Person("Alice", 29))
+val filterList = personList.filter { it.age > 30 }
+println(filterList)
+// 결과: [Person(name=Bob, age=31)]
+
+-> true인 값들만 모아서 새로운 컬렉션으로 반환
+
+- map
+val list = listOf(1, 2, 3, 4)
+println(list.map { it * it }) // 자기자신을 곱함
+// 결과: [1, 4, 9, 16]
+
+val personList = listOf(Person("Bob", 31), Person("Alice", 29))
+val mapList = personList.map { it.age } // 나이만으로 컬렉션을 만듦
+println(mapList)
+// 결과: [31, 29]
+
+// 멤버 참조 사용
+val memberRefMapList = personList.map(Person::name)
+println(memberRefMapList)
+// 결과: [Bob, Alice]
+
+- 컬렉션에서 사용하는 연산
+all: 컬렉션의 모든 원소가 조건을 만족하는지 판단
+any: 컬렉션의 모든 원소 중 하나라도 조건을 만족하는지 판단
+count: 조건을 만족하는 원소의 갯수를 반환
+find: 조건을 만족하는 첫 번째 원소를 반환, 만족하는 원소가 없을 경우 null을 반환
+
+5. 지연 계산(lazy) 컬렉션 연산
+- 콜렉션의 연산자(e.g. map, filter)는 결과 컬렉션을 즉시 생성
+- 컬렉션 함수 연쇄시 중간 결과를 임시로 담음
+- 시퀀스를 사용하면 중간에 임시로 담지 않고도 사용할 수 있음
+
+people.asSequence() // 원본 컬렉션을 시퀀스로 변환
+    .map(Person::name).filter { it.startsWith("A")}
+    .toList() // 결과 시퀀스를 다시 리스트로 변환
+    
+6. 자바 함수형 인터페이스 활용
+- 함수형 인터페이란? 추상 메소드가 단 하나 있는 인터페이스
+- 자바 메소드에 람다를 인자로 전달하는 것은 다음과 같다.
+void postponeComputation(int delay, Runnable computation); //함수형 인터페이스를 인자로 전
+
+//위의 자바 코드에 코틀린에서 람다를 전달하여 호
+postponeComputation(1000) { println(42) } // 함수형 인터페이스에 람다를 전달
+
+// 객체 식을 전달
+postponeComputation(1000, object: Runnable {
+    override fun run() {
+        println(42)
+    }
+})
+
+- 컴파일러는 자동으로 람다를 Runnable 인스턴스로 변환하여 전달한다.
+- 컴파일러가 자동으로 람다를 함수형 인터페이스 익명 클래스로 바꾸지 못하는 경우 SAM생성자를 사용한다.
+
+7. 수신 객체 지정 람다: with와 apply
+- 수신 객체를 명시하지 않고 람다의 본문 안에서 다른 객체의 메소드를 호출할 수 있게 하는 것
+- with 함수: 파라미터가 2개인 메소드로 첫 번째 인자는 객체를 두 번째 인자는 람다를 받는다.
+fun alphabet(): String {
+    val sb = StringBuilder()
+    return with(sb) {
+        for (letter in 'A'..'Z') {
+            this.append(letter) // this를 통해 수신 객체에 접근
+        }
+        append("\nNow I know alphabet!") // this 없이 수신 객체의 메소드 호출
+        this.toString() // 람다에서 값 반환
+    }
+}
+
+- apply 함수: with와 같다. 차이는 항상 자신에게 전달된 객체를 반환한다는 점이다.
+fun alphabet() = StringBuilder().apply {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+}.toString()
+ 
+   
