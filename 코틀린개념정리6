@@ -1,0 +1,126 @@
+6장. 코틀린 타입 시스템
+​
+1. 널 가능성
+* 널이 될 수 있는 타입
+- 자바에서는 메소드 파라미터에 레퍼런스 타입이 올 경우 null인지 아닌지를 구별하고 null 처리를 해야 했음
+- 코틀린에서는 null이 될 수 있는 타입과 없는 타입을 구분하기 때문에 메소드 파라미터로 null 될 수 없다고 타입 지정하면 위와 같은 처리 안해도 됨
+- null이 될 수 있는 타입을 써야한다면?
+-> String?, Int?, MyType? 뒤에 물음표 ?를 붙이면 해당 타입은 null을 참조할 수 있다고 표현
+-> 코틀린은 기본적으로 NotNull이다.
+fun parseInt(str: String?):Int {
+   if(str == null){
+      return 0;
+   }
+   //...기타 작업
+}
+​
+* 안전한 호출 연산자: "?."
+foo?.bar()
+->호출시 foo가 null이면 결과는 null이면 호출은 무시되고 null이 아니면 foo.bar()가 호출됨
+​
+* 엘비스 연산자 "?:"
+fun foo(s: String?) {
+ val t: String = s?:""
+}
+->?: 를 가운데에 두고 좌항의 값이 null인지 검사하는 것으로 좌항이 null이면 우항을 리턴하고 좌항이 null이 아니면 좌항을 사용
+​
+* 안전한 캐스트: as?
+foo as? Type
+-> foo가 Type인 경우 해당 타입으로 캐스팅됨 Type이 아닌 경우 null로 캐스팅됨
+​
+* 널 아님 단언: !!
+fun foo(s: String?) {
+ val notNullStr:String = s!!
+ println(notNullStr.length)
+}
+-> !! 연산자는 null이 아니라고 단언하는 행위를 개발자가 하는것
+-> !! 써도 해당 변수가 null이면 KotlinNullPointerException이 발생
+​
+* let 함수
+foo?.let{
+  //해당 안에서는 it(foo)가 null이 아닌 값이 된다.
+  bar(it)
+}
+-> let 함수 사용시 해당 함수 안 람다식에서는 it이 null이 아니라는 것을 보장
+-> foo 변수 자체가 null이면 해당 블럭은 패스된다.
+​
+2. 코틀린의 기본 타입
+* 기본 타입: Int, Boolean
+- 자바에서는 원시타입(int, double)에는 값이 직접 들어가지만 참조타입(String)에는 메모리상의 객체 위치가 들어감
+- 코틀린은 원시 타입과 래퍼 타입을 구분하지 않음. 항상 같은 타입을 사용.
+val number: Int = 1
+val list: List<Int> = listOf(1, 2, 3)
+​
+* 널이 될 수 있는 기본 타입: Int?, Boolean?
+- 자바는 참조 타입만 null을 가질 수 있다.
+- 코틀린에서 null이 될 수 있는 타입은 자바의 래퍼 타입으로 컴파일 된다.
+val number: Integer? = null //코틀린
+-> Integer number //자바
+​
+* 숫자 변환
+- 코틀린은 한 타입의 숫자를 다른 타입의 숫자로 자동 변환하지 않음
+val i = 1
+val l: Long = i //컴파일 오류남
+​
+- 직접 변환하는 메소드 호출해야 함
+val i = 1
+val l: Long = i.toLong()
+​
+* Any, Any?: 최상위 타입
+- 자바의 Object 클래스처럼 Any 타입이 모든 null이 될 수 없는 타입의 최상위 타입이다.
+- Any는 컴파일 되면 자바의 바이트코드의 Object가 됨
+val answer: Any = 42
+val answer: Any = '안녕'
+​
+* Unit 타입: 코틀린의 void
+- 함수가 어떤 값도 반환하지 않을 경우 반환 타입으로 Unit 쓴다.
+fun print(s: String?): Unit { ... }
+​
+- Unit은 생략할 수 있다.
+fun print(s: String?) { ... }
+​
+* Nothing 타입: "이 함수는 결코 정상적으로 끝나지 않는다"
+- 오직 반환 타입으로만 사용 가능
+// 정상적으로 끝날 수 없는 함수
+fun fail(message: String): Nothing {
+ throw RuntimeException(message)
+}
+​
+fun main() {
+ // fail은 정상적으로 끝나지 않는 함수임을 알수 있으므로 country가 null이 아님을 확신할 수 있다.
+ val country = Address("city", "country").country ?: fail("No City")
+}
+​
+3. 컬력션과 배열
+* 컬렉션에서 널 가능성?
+List<Int?> //리스트 안의 각 값이 널이 될 수 있음.
+List<Int>? //전체 리스트가 널이 될 수 있음. 다만 널이 아닌경우 해당 리스트 안이 값은 모두 존재해야 함.
+​
+* null이 될 수 있는 값으로 이루어진 컬렉션 다루기
+-> 코틀린은 filterNotNull이라는 표준함수를 제공하여 컬렉션에서 null을 걸러낼 수 있다.
+fun addValidNumbers(numbers: List<Int?>) {
+  val validNumbers = numbers.filterNotNull()
+  println("Sum of valid numbers: ${validNumbers.sum()}")
+  println("Invalid numbers: ${numbers.size - validNumbers.size}")
+}
+​
+* 코틀린은 읽기 전용과 변경 가능한 컬렉션이 따로 구분하여 존재
+- 읽기 전용: Collection 인터페이스
+ List = listOf
+ Set = setOf
+ Map = mapOf
+- 변경 가능: MutableCollection 인터페이스
+ List = mutableListOf, arrayListOf
+ Set = mutableSetOf, hashSetOf, linkedSetOf, sortedSetOf
+ Map = mutableMapOf, hashMapOf, linkedMapOf, sortedMapOf
+​
+​
+* 코틀린에서 배열을 만드는 방법
+- arrayOf 함수
+- arrayOfNulls 함수: 모든 요소가 널로 채워짐
+- Array 생성자는 배열 크기와 람다를 인자로 받아서 생성
+val letters = Array<string>(26) {i -> ('a'+i).toString() }
+- toTypedArray 메서드를 사용하여 컬렉션을 배열로 쉽게 변환 가능하다.
+val list: List<String) = listOf("h","e","l","l","o")
+val array: Array<String> = strings.toTypeArray()
+- 래퍼타입 즉 박싱된 값이 들어있는 컬렉션이나 배열의 경우 toInArray 등의 변환 함수를 사용해 박싱하지 않은 값이 들어 있는 배열로 변환 할 수 있다.
